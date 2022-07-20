@@ -270,7 +270,7 @@ public class LoanAccrualWritePlatformServiceImpl implements LoanAccrualWritePlat
                 + "fee_charges_portion_derived,penalty_charges_portion_derived, submitted_on_date) VALUES (?, ?, false, ?, ?, ?, ?, ?, ?, ?)";
         this.jdbcTemplate.update(transactionSql, scheduleAccrualData.getLoanId(), scheduleAccrualData.getOfficeId(),
                 LoanTransactionType.ACCRUAL.getValue(), accruedTill, amount, interestportion, feeportion, penaltyportion,
-                DateUtils.getBusinessDate());
+                DateUtils.getBusinessLocalDate());
         @SuppressWarnings("deprecation")
         final Long transactonId = this.jdbcTemplate.queryForObject("SELECT " + sqlGenerator.lastInsertId(), Long.class); // NOSONAR
 
@@ -492,10 +492,8 @@ public class LoanAccrualWritePlatformServiceImpl implements LoanAccrualWritePlat
             if (loan == null) {
                 throw new LoanNotFoundException(loanId);
             }
-            final List<Long> existingTransactionIds = new ArrayList<>();
-            final List<Long> existingReversedTransactionIds = new ArrayList<>();
-            existingTransactionIds.addAll(loan.findExistingTransactionIds());
-            existingReversedTransactionIds.addAll(loan.findExistingReversedTransactionIds());
+            final List<Long> existingTransactionIds = new ArrayList<>(loan.findExistingTransactionIds());
+            final List<Long> existingReversedTransactionIds = new ArrayList<>(loan.findExistingReversedTransactionIds());
             loan.processIncomeTransactions();
             this.loanRepositoryWrapper.saveAndFlush(loan);
             postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds);
